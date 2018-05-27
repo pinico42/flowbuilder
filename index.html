@@ -1,0 +1,167 @@
+<head>
+	<script src="complex.js" type="text/javascript"></script>
+	<style>
+		body {
+			margin: 0px;
+			font-family: Arial, sans-serif;
+		}
+
+		#controls {
+			width: 16em;
+			height: 15em;
+			position: fixed;
+			background-color: rgba(0,0,0,0.3);
+			color: white;
+			padding: 1em;
+    		right: 0; 
+		}
+
+		table {
+			color: white;
+			opacity: 1;
+		}
+
+		input {
+			width: 10em;
+		}
+	</style>
+</head>
+<body>
+	<div id="controls">
+		<table>
+			<tr><td>Scale:</td><td><input id="s_unit" type="range" min="40" max="200" value="100" onchange="updateSlider(this)"></td></tr>
+			<tr><td>Resolution:</td><td><input id="s_cpunit" type="range" min="30" max="100" value="40" onchange="updateSlider(this)"></td></tr>
+			<tr><td>Vector length:</td><td><input id="s_length" type="range" min="3" max="30" value="10" onchange="updateSlider(this)"></td></tr>	
+		</table>
+		<p><b>C</b> to clear canvas</p>
+		<p><b>Up/Down</b> or <b>Scroll</b> to change order</p>
+		<p><b>Left click</b> to place</p>
+		<p><b>Right click</b> or <b>Enter</b> to invert polarity</p>
+	</div>
+	<canvas id="c"></canvas>
+<script>
+var canvas = document.getElementById("c");
+var ctx = canvas.getContext("2d");
+
+var singularities = [[-1,Complex(20,5), new Complex({r:10,phi:0})]];
+var unit = 100;
+var cpunit = 0.25
+var length = 10;
+
+function M(z){
+	var w = Complex();
+
+	for(var i=0;i<singularities.length;i++){
+		var s = singularities[i];
+		var ws = z.sub(s[1]).pow(s[0]).mul(s[2]);
+		w = w.add(ws);
+	}
+	return w;
+}
+
+function drawVectors(){
+	for(var a=0;a<canvas.width/unit;a+=cpunit){
+		for(var b=0;b<canvas.height/unit;b+=cpunit){
+			var z = Complex(a,b);
+			var w = M(z).conjugate();
+			var arg = w.arg();
+			var mod = w.abs();
+			var hue = 280*(1-1/(1+1/mod));
+			ctx.strokeStyle="hsl("+hue+", 66%, 63%)";
+			ctx.lineWidth=3;
+			ctx.beginPath();
+			ctx.moveTo((a*unit-length/2*Math.cos(arg)),(b*unit-length/2*Math.sin(arg)));
+			ctx.lineTo((a*unit+length/2*Math.cos(arg)),(b*unit+length/2*Math.sin(arg)));
+			ctx.stroke();
+		}
+	}
+}
+
+function tick(){
+	canvas.width = window.innerWidth;
+	canvas.height = window.innerHeight;
+	ctx.fillStyle = "#555";
+	ctx.fillRect(0,0,canvas.width,canvas.height);
+	drawVectors();
+}
+
+canvas.onmousemove = function(event) {
+    event = event || window.event; // IE-ism
+
+    // If pageX/Y aren't available and clientX/Y are,
+    // calculate pageX/Y - logic taken from jQuery.
+    // (This is to support old IE)
+    if (event.pageX == null && event.clientX != null) {
+        eventDoc = (event.target && event.target.ownerDocument) || document;
+        doc = eventDoc.documentElement;
+        body = eventDoc.body;
+
+        event.pageX = event.clientX +
+          (doc && doc.scrollLeft || body && body.scrollLeft || 0) -
+          (doc && doc.clientLeft || body && body.clientLeft || 0);
+        event.pageY = event.clientY +
+          (doc && doc.scrollTop  || body && body.scrollTop  || 0) -
+          (doc && doc.clientTop  || body && body.clientTop  || 0 );
+    }
+    singularities[0][1] = Complex(event.pageX / unit, event.pageY / unit);
+}
+
+
+canvas.onclick = function(event){
+	singularities.push(singularities[0].slice());
+}
+
+canvas.onwheel = function(event){
+	event.preventDefault();
+	if(event.deltaY<0){
+    	singularities[0][0]++;
+	}
+	if(event.deltaY>0){
+    	singularities[0][0]--;
+		
+	}
+}
+
+canvas.oncontextmenu = function(event){
+	event.preventDefault();
+	singularities[0][2] = singularities[0][2].mul(-1)
+}
+
+document.onkeydown = function(event){
+	if(event.keyCode == 67){ // C
+		event.preventDefault();
+		singularities = [[-1,Complex(20,5), new Complex({r:10,phi:0})]];
+	}
+	if(event.keyCode == 13){ // Enter
+		event.preventDefault();
+		singularities[0][2] = singularities[0][2].mul(-1)
+	}
+	if(event.keyCode == 38){ // Up
+		event.preventDefault();
+    	singularities[0][0]++;
+	}
+	if(event.keyCode == 40){ // Down
+		event.preventDefault();
+    	singularities[0][0]--;
+	}
+}
+
+function updateSlider(e){
+	console.log(e.value);
+	switch(e.id){
+		case "s_unit":
+			unit = e.value;
+			break;
+		case "s_cpunit":
+			cpunit = 10/e.value;
+			break;
+		case "s_length":
+			length = e.value;
+			break;
+	}
+}
+
+window.setInterval(tick, 100)
+
+</script>
+</body>
