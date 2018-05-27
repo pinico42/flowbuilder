@@ -8,12 +8,10 @@
 		}
 
 		#controls {
-			width: 16em;
-			height: 15em;
 			position: fixed;
 			background-color: rgba(0,0,0,0.3);
 			color: white;
-			padding: 1em;
+			padding: 0.7em;
     		right: 0; 
 		}
 
@@ -32,7 +30,8 @@
 		<table>
 			<tr><td>Scale:</td><td><input id="s_unit" type="range" min="40" max="200" value="100" onchange="updateSlider(this)"></td></tr>
 			<tr><td>Resolution:</td><td><input id="s_cpunit" type="range" min="30" max="100" value="40" onchange="updateSlider(this)"></td></tr>
-			<tr><td>Vector length:</td><td><input id="s_length" type="range" min="3" max="30" value="10" onchange="updateSlider(this)"></td></tr>	
+			<tr><td>Vector length:</td><td><input id="s_length" type="range" min="3" max="30" value="10" onchange="updateSlider(this)"></td></tr>
+			<tr><td>Show direction:</td><td><input id="t_direction" type="checkbox" onclick="showdirection=!showdirection;"></td></tr>	
 		</table>
 		<p><b>C</b> to clear canvas</p>
 		<p><b>Up/Down</b> or <b>Scroll</b> to change order</p>
@@ -48,6 +47,7 @@ var singularities = [[-1,Complex(20,5), new Complex({r:10,phi:0})]];
 var unit = 100;
 var cpunit = 0.25
 var length = 10;
+var showdirection = false;
 
 function M(z){
 	var w = Complex();
@@ -71,8 +71,8 @@ function drawVectors(){
 			ctx.strokeStyle="hsl("+hue+", 66%, 63%)";
 			ctx.lineWidth=3;
 			ctx.beginPath();
-			ctx.moveTo((a*unit-length/2*Math.cos(arg)),(b*unit-length/2*Math.sin(arg)));
-			ctx.lineTo((a*unit+length/2*Math.cos(arg)),(b*unit+length/2*Math.sin(arg)));
+			ctx.moveTo(a*unit-length/2*Math.cos(arg),b*unit-length/2*Math.sin(arg));
+			ctx.lineTo((a*unit+length*(1+showdirection)/2*Math.cos(arg)),(b*unit+length*(1+showdirection)/2*Math.sin(arg)));
 			ctx.stroke();
 		}
 	}
